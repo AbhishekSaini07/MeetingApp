@@ -41,7 +41,7 @@ function setLocalStream(stream) {
     document.getElementById("local-vid-container").hidden = false;
     let video = document.getElementById("local-video");
     video.srcObject = stream;
-    video.muted = true;
+    video.muted = false;
     video.play();
 }
 function setScreenSharingStream(stream) {
