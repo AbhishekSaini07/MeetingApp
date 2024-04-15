@@ -185,7 +185,7 @@ function startScreenShare() {
     if (screenSharing) {
         stopScreenSharing()
     }
-    navigator.mediaDevices.getDisplayMedia({ video: true }).then((stream) => {
+    navigator.mediaDevices.getDisplayMedia({ video: true ,audio: true }).then((stream) => {
         setScreenSharingStream(stream);
 
         screenStream = stream;
@@ -201,6 +201,7 @@ function startScreenShare() {
             screenSharing = true
         }
         console.log(screenStream)
+        
     })
 }
 
@@ -217,6 +218,7 @@ function stopScreenSharing() {
         track.stop();
     });
     screenSharing = false
+    document.getElementById("screenshare-container").hidden = true;
 }
 function leaveMeeting() {
     // Close the current Peer connection
@@ -243,6 +245,7 @@ function leaveMeeting() {
     document.getElementById("local-vid-container").hidden = true;
     document.getElementById("remote-vid-container").hidden = true;
     document.getElementById("screenshare-container").hidden = true;
+    
 
     // Clear room ID input
     document.getElementById("room-input").value = "";
