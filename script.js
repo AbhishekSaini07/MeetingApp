@@ -50,7 +50,7 @@ function setScreenSharingStream(stream) {
     document.getElementById("screenshare-container").hidden = false;
     let video = document.getElementById("screenshared-video");
     video.srcObject = stream;
-    video.muted = true;
+    video.muted = false;
     video.play();
 }
 function setRemoteStream(stream) {
