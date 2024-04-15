@@ -49,6 +49,7 @@ function setLocalStream(stream) {
 function setScreenSharingStream(stream) {
     document.getElementById("screenshare-container").hidden = false;
     let video = document.getElementById("screenshared-video");
+
     video.srcObject = stream;
     video.muted = false;
     video.play();
@@ -186,6 +187,11 @@ function startScreenShare() {
         stopScreenSharing()
     }
     navigator.mediaDevices.getDisplayMedia({ video: true ,audio: true }).then((stream) => {
+        let call = peer.call(room_id, stream)
+            call.on('stream', (stream) => {
+                setScreenSharingStream(stream);
+
+            })
         setScreenSharingStream(stream);
 
         screenStream = stream;
