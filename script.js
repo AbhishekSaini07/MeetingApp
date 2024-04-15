@@ -2,10 +2,11 @@ var room_id;
 var getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
 var local_stream;
 var screenStream;
+let pollOptions = [];
 var peer = null;
 var currentPeer = null
 var screenSharing = false
-
+var conn = null;
 function createRoom() {
     console.log("Creating Room")
     let room = document.getElementById("room-input").value;
@@ -39,6 +40,7 @@ function createRoom() {
 
 function setLocalStream(stream) {
     document.getElementById("local-vid-container").hidden = false;
+    document.getElementById("poll-creation").hidden = false;
     let video = document.getElementById("local-video");
     video.srcObject = stream;
     video.muted = true;
@@ -216,3 +218,167 @@ function stopScreenSharing() {
     });
     screenSharing = false
 }
+function leaveMeeting() {
+    // Close the current Peer connection
+    if (peer) {
+        peer.disconnect();
+        peer.destroy();
+        peer = null;
+    }
+
+    // Stop local video and screen sharing
+    if (local_stream) {
+        local_stream.getTracks().forEach(function(track) {
+            track.stop();
+        });
+        local_stream = null;
+    }
+
+    // Stop screen sharing if active
+    if (screenSharing) {
+        stopScreenSharing();
+    }
+
+    // Hide video containers
+    document.getElementById("local-vid-container").hidden = true;
+    document.getElementById("remote-vid-container").hidden = true;
+    document.getElementById("screenshare-container").hidden = true;
+
+    // Clear room ID input
+    document.getElementById("room-input").value = "";
+
+    // Hide notification
+    document.getElementById("notification").hidden = true;
+   
+
+    // Reset currentPeer
+    currentPeer = null;
+}
+// Function to mute/unmute audio
+function toggleMute() {
+    alert("Mute");
+    if (!local_stream) return; // No local stream available
+
+    const audioTracks = local_stream.getAudioTracks();
+    audioTracks.forEach(track => {
+        track.enabled = !track.enabled; // Toggle audio track enabled property
+    });
+
+    // Update UI to reflect mute/unmute state
+    const muteButton = document.getElementById("mute-toggle-button");
+    if (audioTracks.some(track => !track.enabled)) {
+        // Audio is muted
+        muteButton.textContent = "Unmute";
+    } else {
+        // Audio is unmuted
+        muteButton.textContent = "Mute";
+    }
+}
+// Function to turn camera on/off
+function toggleCamera() {
+    if (!local_stream) return; // No local stream available
+
+    const videoTracks = local_stream.getVideoTracks();
+    videoTracks.forEach(track => {
+        track.enabled = !track.enabled; // Toggle video track enabled property
+    });
+
+    // Update UI to reflect camera on/off state
+    const cameraToggleButton = document.getElementById("camera-toggle-button");
+    if (videoTracks.some(track => !track.enabled)) {
+        // Camera is turned off
+        cameraToggleButton.textContent = "Turn Camera On";
+    } else {
+        // Camera is turned on
+        cameraToggleButton.textContent = "Turn Camera Off";
+    }
+}
+function addPollOption() {
+    const pollOptionInput = document.getElementById('poll-option');
+    const option = pollOptionInput.value.trim();
+    alert(option);
+    if (option !== '') {
+        pollOptions.push(option);
+        console.log(pollOptions);
+        pollOptionInput.value = ''; // Clear input field
+    }
+}
+
+// Function to create a poll
+function createPoll() {
+    console.log("create Pole with options: "+ pollOptions);
+    if (pollOptions.length === 0) {
+        alert('Please add at least one option to create the poll.');
+        return;
+    }
+
+    createPoll(pollOptions);
+}
+
+// Function to create a poll
+function createPoll(options) {
+    pollData = {
+        options: pollOptions,
+        votes: Array(pollOptions.length).fill(0) // Initialize votes count for each option
+    };
+    
+
+    if (peer) {
+        conn = peer.connect(room_id);
+        conn.send(JSON.stringify({ type: 'poll', data: pollData }));
+        console.log("Data Send Done");
+    } else {
+        console.error('Peer object is not available.');
+    }
+}
+// Function to display poll options
+function displayPoll(data) {
+    const pollContainer = document.getElementById('poll-container');
+    pollContainer.innerHTML = ''; // Clear previous poll options
+
+    data.options.forEach((option, index) => {
+        const optionElement = document.createElement('div');
+        optionElement.classList.add('poll-option');
+        optionElement.textContent = option;
+        optionElement.onclick = () => vote(index);
+        pollContainer.appendChild(optionElement);
+    });
+
+    // Show poll container
+    pollContainer.style.display = 'block';
+
+    // Hide poll results container
+    document.getElementById('poll-results').style.display = 'none';
+}
+
+// Function to display poll results
+function displayPollResults(data) {
+    const pollResultsContainer = document.getElementById('poll-results');
+    pollResultsContainer.innerHTML = ''; // Clear previous poll results
+
+    const totalVotes = data.votes.reduce((total, votes) => total + votes, 0);
+    data.options.forEach((option, index) => {
+        const resultElement = document.createElement('div');
+        const percentage = totalVotes === 0 ? 0 : (data.votes[index] / totalVotes) * 100;
+        resultElement.textContent = `${option}: ${data.votes[index]} votes (${percentage.toFixed(2)}%)`;
+        pollResultsContainer.appendChild(resultElement);
+    });
+
+    // Show poll results container
+    pollResultsContainer.style.display = 'block';
+
+    // Hide poll container
+    document.getElementById('poll-container').style.display = 'none';
+}
+// Assuming you have a peer object set up and listening for data
+
+	conn.on('data', function(data) {
+	  console.log('Received', data);
+      const parsedData = JSON.parse(data);
+      if (parsedData.type === 'poll') {
+        // Call displayPoll to show the poll options
+        displayPoll(parsedData.data);
+    }
+    });
+
+

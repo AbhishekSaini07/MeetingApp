@@ -68,7 +68,6 @@
     video {
         width: 100%; /* Make videos fill container */
         border-radius: 12px; /* Rounded corners */
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Add shadow */
     }
 
     /* Styling for buttons inside video containers */
@@ -94,6 +93,15 @@
         padding-right: 15px;
         padding-left: 15px;
     }
+    .poll-container {
+            margin-top: 20px;
+        }
+        .poll-option {
+            margin-bottom: 10px;
+        }
+        .poll-results {
+            margin-top: 20px;
+        }
 </style>
 
 <body>
@@ -105,6 +113,12 @@
     </nav>
     <div class="container-fluid">
         <div class="row">
+            <div id="poll-container" class="poll-container">
+                <!-- Poll options will be dynamically added here -->
+            </div>
+            <div id="poll-results" class="poll-results" style="display: none;">
+                <!-- Poll results will be displayed here -->
+            </div>
             <div class="col-5 pt-5 ps-5 col-sm-7">
                 <label class="form-label">Enter Room ID to connect or create</label>
                 <input id="room-input" type="text" class="form-control" placeholder="room ID">
@@ -152,7 +166,18 @@
                         src="/media/im.abhishekbhardwaj bharmour.mp4"></video>
                 </div>
             </div>
+            
         </div>
+        <div id="poll-creation" hidden>
+            <button type="submit" onclick="leaveMeeting()" class="btn btn-success">LeaveMeeting</button>
+            <button type="submit" onclick="toggleMute()" class="btn btn-success">Mute/Unmute</button>
+            <button type="submit" onclick="toggleCamera()" class="btn btn-success">Camera On/Off</button>
+            <input type="text" id="poll-option" placeholder="Enter Poll Option">
+            <button onclick="addPollOption()">Add Option</button>
+            <button onclick="createPoll()">Create Poll</button>
+        </div>
+        
+        
     </div>
 
     <!-- Optional JavaScript; choose one of the two! -->
